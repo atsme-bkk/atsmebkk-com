@@ -1,5 +1,3 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
 # dependencies
 /node_modules
 /.pnp
@@ -23,6 +21,8 @@
 # misc
 .DS_Store
 *.pem
+*.log
+.eslintcache
 
 # debug
 npm-debug.log*
@@ -30,8 +30,14 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# env files
+# เราบล็อกทั้งหมดเพื่อความปลอดภัย
+.env
+.env*.local
+.env.development
+.env.production
+# ยกเว้นไฟล์ตัวอย่าง (ถ้าคุณจะสร้างไว้)
+!.env.example
 
 # vercel
 .vercel
@@ -39,3 +45,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Docker
+*.tar
+docker-compose.override.yml
