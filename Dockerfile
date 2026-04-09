@@ -2,17 +2,30 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json* ./
-# ใช้ npm ci เพื่อให้ติดตั้ง version ตรงตาม lock file เป๊ะๆ
-RUN npm ci 
+RUN npm ci
 
 # Stage 2: Builder
 FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-
-# ปิดการเช็คเรื่อง telemetry และเพิ่มคำสั่งข้ามการเช็ค lint/type หากต้องการรีบ build ให้ผ่าน
 ENV NEXT_TELEMETRY_DISABLED=1
-# หากแก้โค้ดแล้วยังไม่ผ่าน และต้องการข้ามการเช็คเพื่อเทส docker ก่อน 
-# ให้เติม --no-lint ในคำสั่ง build (ถ้าใน package.json รองรับ) 
+# ต้องตั้งค่า output: 'standalone' ใน next.config.ts ด้วยนะคร้บ
 RUN npm run build
+
+# Stage 3: Runner (ตัวที่จะรันจริง)
+FROM node:20-alpine AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV PORT=3000
+
+# คัดลอกเฉพาะไฟล์ที่จำเป็นมาจาก builder
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+
+EXPOSE 3000
+
+# คำสั่งรันต้องอยู่ที่ Stage สุดท้ายเท่านั้น
+CMD ["node", "server.js"]
